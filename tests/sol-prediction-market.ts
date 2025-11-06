@@ -6,8 +6,10 @@ import { Connection, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BN } from "bn.js";
 import {ObjectId} from "bson";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { expect } from "chai";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, AuthorityType, getAccount, getAssociatedTokenAddressSync, setAuthority, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { assert, expect } from "chai";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
+
 
 
 dotenv.config({ path: "./tests/.env" });
@@ -18,17 +20,18 @@ describe("sol-prediction-market", () => {
 
   const program = anchor.workspace.solPredictionMarket as Program<SolPredictionMarket>;
 
-  const connection = new Connection("https://api.devnet.solana.com");
-
   const authorityKeypair = Keypair.fromSecretKey(bs58.decode(process.env.TEST_KEYPAIR!));
   const userKeypair = Keypair.fromSecretKey(bs58.decode(process.env.TEST2_KEYPAIR!));
+  const RPC_URL = process.env.RPC_URL;
+
+   const connection = new Connection(RPC_URL);
   
-  const decimals = new BN(10).pow(new BN(1));
+  const decimals = new BN(10).pow(new BN(6));
   
   const usdcMint = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU");
   const usdcDecimals = new BN(10).pow(new BN(6));
   
-  const MARKET_ID = new ObjectId("690bbe4892b93c91540ad467");
+  const MARKET_ID = new ObjectId("690bbe4892b93c91540ad567");
 
   const marketAccount = PublicKey.findProgramAddressSync(
       [Buffer.from("market"), MARKET_ID.id],
@@ -52,6 +55,38 @@ describe("sol-prediction-market", () => {
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
+
+    const userUsdcAta = getAssociatedTokenAddressSync(
+      usdcMint,
+      userKeypair.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    const userOutcomeAAta = getAssociatedTokenAddressSync(
+      outcomeAMint,
+      userKeypair.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    const userOutcomeBAta = getAssociatedTokenAddressSync(
+      outcomeBMint,
+      userKeypair.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    console.log("Market Account = " + marketAccount.toString());
+    console.log("outcome A mint = " + outcomeAMint.toString());
+    console.log("outcome B mint = " + outcomeBMint.toString());
+    console.log("Base token vault = " + baseTokenVault.toString());
+    console.log("User Usdc Ata = " + userUsdcAta.toString());
+    console.log("User Outcome A Ata = " + userOutcomeAAta.toString());
+    console.log("User Outcome B Ata = " + userOutcomeBAta.toString());
 
   it("Initialize vault", async () => {
     
@@ -84,5 +119,36 @@ describe("sol-prediction-market", () => {
     expect(marketAccountData.baseTokenVault.equals(baseTokenVault)).to.be.true;
     expect(marketAccountData.isSettled).to.be.false;
     expect(marketAccountData.winningOutcome).to.null;
+  });
+
+  it("Split", async () => {
+    // const tx = await program.methods
+    //   .split(Array.from(MARKET_ID.id), new BN(5).mul(decimals))
+    //   .accounts({
+    //     authority: authorityKeypair.publicKey,
+    //     user: userKeypair.publicKey,
+    //     marketAccount: marketAccount,
+    //     outcomeAMint: outcomeAMint,
+    //     outcomeBMint: outcomeBMint,
+    //     baseTokenMint: usdcMint,
+    //     baseTokenVault: baseTokenVault,
+    //     userOutcomeAAta: userOutcomeAAta,
+    //     userOutcomeBAta: userOutcomeBAta,
+    //     userBaseTokenAta: userUsdcAta,
+    //     systemProgram: SYSTEM_PROGRAM_ID,
+    //     tokenProgram: TOKEN_PROGRAM_ID,
+    //     associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
+    //   })
+    //   .signers([authorityKeypair, userKeypair])
+    //   .rpc();
+
+    // console.log ("TX: " + tx);
+
+    const userOutcomeAAtaInfo = await getAccount(connection, userOutcomeAAta);
+    const userOutcomeBAtaInfo = await getAccount(connection, userOutcomeBAta);
+
+    expect(userOutcomeAAtaInfo.amount.toString()).to.equal(new BN (5).mul(decimals).toString());
+    expect(userOutcomeBAtaInfo.amount.toString()).to.equal(new BN (5).mul(decimals).toString());
+
   });
 });

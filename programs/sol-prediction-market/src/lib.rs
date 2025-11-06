@@ -13,4 +13,8 @@ pub mod sol_prediction_market {
     pub fn initialize_market<'info> (ctx: Context<'_, '_, '_, 'info, InitializeMarket<'info>>, market_id: [u8; 12]) -> Result<()> {
         ctx.accounts.process(market_id, ctx.bumps.market_account)
     }
+
+    pub fn split<'info> (ctx: Context<'_, '_, '_, 'info, Split<'info>>, market_id: [u8; 12], amount: u64) -> Result<()> {
+        ctx.accounts.process(market_id, amount, ctx.bumps.market_account)
+    }
 }

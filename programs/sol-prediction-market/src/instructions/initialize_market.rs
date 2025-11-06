@@ -22,8 +22,8 @@ pub struct InitializeMarket<'info> {
     #[account(
         init,
         payer = authority,
-        mint::decimals = 1,
-        mint::authority = authority,
+        mint::decimals = 6,
+        mint::authority = market_account,
         seeds = [b"outcome_a".as_ref(), market_account.key().as_ref()],
         bump
     )]
@@ -32,8 +32,8 @@ pub struct InitializeMarket<'info> {
     #[account(
         init,
         payer = authority,
-        mint::decimals = 1,
-        mint::authority = authority,
+        mint::decimals = 6,
+        mint::authority = market_account,
         seeds = [b"outcome_b".as_ref(), market_account.key().as_ref()],
         bump
     )]

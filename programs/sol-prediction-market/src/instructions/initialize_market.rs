@@ -27,7 +27,7 @@ pub struct InitializeMarket<'info> {
         seeds = [b"outcome_a".as_ref(), market_account.key().as_ref()],
         bump
     )]
-    pub outcome_a_mint: InterfaceAccount<'info, Mint>,
+    pub outcome_a_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         init,
@@ -37,9 +37,27 @@ pub struct InitializeMarket<'info> {
         seeds = [b"outcome_b".as_ref(), market_account.key().as_ref()],
         bump
     )]
-    pub outcome_b_mint: InterfaceAccount<'info, Mint>,
+    pub outcome_b_mint: Box<InterfaceAccount<'info, Mint>>,
 
-    pub base_token_mint: InterfaceAccount<'info, Mint>,
+    #[account(
+        init,
+        payer = authority,
+        associated_token::mint = outcome_a_mint,
+        associated_token::authority = market_account,
+        associated_token::token_program = token_program
+    )]
+    pub market_outcome_a_ata: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    #[account(
+        init,
+        payer = authority,
+        associated_token::mint = outcome_b_mint,
+        associated_token::authority = market_account,
+        associated_token::token_program = token_program
+    )]
+    pub market_outcome_b_ata: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    pub base_token_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         init,
@@ -48,7 +66,7 @@ pub struct InitializeMarket<'info> {
         associated_token::authority = market_account,
         associated_token::token_program = token_program
     )]
-    pub base_token_vault: InterfaceAccount<'info, TokenAccount>, 
+    pub base_token_vault: Box<InterfaceAccount<'info, TokenAccount>>, 
 
     pub system_program: Program<'info, System>,
     

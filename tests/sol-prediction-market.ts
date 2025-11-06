@@ -31,7 +31,7 @@ describe("sol-prediction-market", () => {
   const usdcMint = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU");
   const usdcDecimals = new BN(10).pow(new BN(6));
   
-  const MARKET_ID = new ObjectId("690bbe4892b93c91540ad567");
+  const MARKET_ID = new ObjectId("690bbe4892b93c91540ad568");
 
   const marketAccount = PublicKey.findProgramAddressSync(
       [Buffer.from("market"), MARKET_ID.id],
@@ -64,6 +64,22 @@ describe("sol-prediction-market", () => {
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
+    const marketOutcomeAAta = getAssociatedTokenAddressSync(
+      outcomeAMint,
+      marketAccount,
+      true,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    const marketOutcomeBAta = getAssociatedTokenAddressSync(
+      outcomeBMint,
+      marketAccount,
+      true,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
     const userOutcomeAAta = getAssociatedTokenAddressSync(
       outcomeAMint,
       userKeypair.publicKey,
@@ -85,6 +101,8 @@ describe("sol-prediction-market", () => {
     console.log("outcome B mint = " + outcomeBMint.toString());
     console.log("Base token vault = " + baseTokenVault.toString());
     console.log("User Usdc Ata = " + userUsdcAta.toString());
+    console.log("Market Outcome A Ata = " + marketOutcomeAAta.toString());
+    console.log("Market Outcome B Ata = " + marketOutcomeBAta.toString());
     console.log("User Outcome A Ata = " + userOutcomeAAta.toString());
     console.log("User Outcome B Ata = " + userOutcomeBAta.toString());
 
@@ -99,6 +117,8 @@ describe("sol-prediction-market", () => {
           marketAccount: marketAccount,
           outcomeAMint: outcomeAMint,
           outcomeBMint: outcomeBMint,
+          marketOutcomeAAta: marketOutcomeAAta,
+          marketOutcomeBAta: marketOutcomeBAta,
           baseTokenMint: usdcMint,
           baseTokenVault: baseTokenVault,
           systemProgram: SystemProgram.programId,
@@ -122,33 +142,67 @@ describe("sol-prediction-market", () => {
   });
 
   it("Split", async () => {
-    // const tx = await program.methods
-    //   .split(Array.from(MARKET_ID.id), new BN(5).mul(decimals))
-    //   .accounts({
-    //     authority: authorityKeypair.publicKey,
-    //     user: userKeypair.publicKey,
-    //     marketAccount: marketAccount,
-    //     outcomeAMint: outcomeAMint,
-    //     outcomeBMint: outcomeBMint,
-    //     baseTokenMint: usdcMint,
-    //     baseTokenVault: baseTokenVault,
-    //     userOutcomeAAta: userOutcomeAAta,
-    //     userOutcomeBAta: userOutcomeBAta,
-    //     userBaseTokenAta: userUsdcAta,
-    //     systemProgram: SYSTEM_PROGRAM_ID,
-    //     tokenProgram: TOKEN_PROGRAM_ID,
-    //     associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
-    //   })
-    //   .signers([authorityKeypair, userKeypair])
-    //   .rpc();
+  //   const tx = await program.methods
+  //     .split(Array.from(MARKET_ID.id), new BN(3).mul(decimals))
+  //     .accounts({
+  //       authority: authorityKeypair.publicKey,
+  //       user: userKeypair.publicKey,
+  //       marketAccount: marketAccount,
+  //       outcomeAMint: outcomeAMint,
+  //       outcomeBMint: outcomeBMint,
+  //       baseTokenMint: usdcMint,
+  //       baseTokenVault: baseTokenVault,
+  //       userOutcomeAAta: userOutcomeAAta,
+  //       userOutcomeBAta: userOutcomeBAta,
+  //       userBaseTokenAta: userUsdcAta,
+  //       systemProgram: SYSTEM_PROGRAM_ID,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
+  //     })
+  //     .signers([authorityKeypair, userKeypair])
+  //     .rpc();
 
-    // console.log ("TX: " + tx);
+  //   console.log ("TX: " + tx);
 
-    const userOutcomeAAtaInfo = await getAccount(connection, userOutcomeAAta);
-    const userOutcomeBAtaInfo = await getAccount(connection, userOutcomeBAta);
+  //   const userOutcomeAAtaInfo = await getAccount(connection, userOutcomeAAta);
+  //   const userOutcomeBAtaInfo = await getAccount(connection, userOutcomeBAta);
 
-    expect(userOutcomeAAtaInfo.amount.toString()).to.equal(new BN (5).mul(decimals).toString());
-    expect(userOutcomeBAtaInfo.amount.toString()).to.equal(new BN (5).mul(decimals).toString());
+  //   expect(userOutcomeAAtaInfo.amount.toString()).to.equal(new BN (3).mul(decimals).toString());
+  //   expect(userOutcomeBAtaInfo.amount.toString()).to.equal(new BN (3).mul(decimals).toString());
 
   });
+
+  it("Merge", async () => {
+  //   const tx = await program.methods
+  //     .merge(Array.from(MARKET_ID.id), new BN(2).mul(decimals))
+  //     .accounts({
+  //       authority: authorityKeypair.publicKey,
+  //       user: userKeypair.publicKey,
+  //       marketAccount: marketAccount,
+  //       outcomeAMint: outcomeAMint,
+  //       outcomeBMint: outcomeBMint,
+  //       baseTokenMint: usdcMint,
+  //       baseTokenVault: baseTokenVault,
+  //       userOutcomeAAta: userOutcomeAAta,
+  //       userOutcomeBAta: userOutcomeBAta,
+  //       userBaseTokenAta: userUsdcAta,
+  //       marketOutcomeAAta: marketOutcomeAAta,
+  //       marketOutcomeBAta: marketOutcomeBAta,
+  //       systemProgram: SYSTEM_PROGRAM_ID,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
+  //     })
+  //     .signers([authorityKeypair, userKeypair])
+  //     .rpc();
+
+  //   console.log ("TX: " + tx);
+
+    // const userOutcomeAAtaInfo = await getAccount(connection, userOutcomeAAta);
+    // const userOutcomeBAtaInfo = await getAccount(connection, userOutcomeBAta);
+
+    // expect(userOutcomeAAtaInfo.amount.toString()).to.equal(new BN (1).mul(decimals).toString());
+    // expect(userOutcomeBAtaInfo.amount.toString()).to.equal(new BN (1).mul(decimals).toString());
+
+  });
+
 });

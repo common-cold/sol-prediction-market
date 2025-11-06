@@ -24,20 +24,20 @@ pub struct Split<'info> {
         seeds = [b"outcome_a".as_ref(), market_account.key().as_ref()],
         bump
     )]
-    pub outcome_a_mint: InterfaceAccount<'info, Mint>,
+    pub outcome_a_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         mut,
         seeds = [b"outcome_b".as_ref(), market_account.key().as_ref()],
         bump
     )]
-    pub outcome_b_mint: InterfaceAccount<'info, Mint>,
+    pub outcome_b_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(mut)]
-    pub base_token_mint: InterfaceAccount<'info, Mint>,
+    pub base_token_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(mut)]
-    pub base_token_vault: InterfaceAccount<'info, TokenAccount>, 
+    pub base_token_vault: Box<InterfaceAccount<'info, TokenAccount>>, 
 
     #[account(
         init_if_needed,
@@ -46,7 +46,7 @@ pub struct Split<'info> {
         associated_token::authority = user,
         associated_token::token_program = token_program
     )]
-    pub user_outcome_a_ata: InterfaceAccount<'info, TokenAccount>,
+    pub user_outcome_a_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         init_if_needed,
@@ -55,7 +55,7 @@ pub struct Split<'info> {
         associated_token::authority = user,
         associated_token::token_program = token_program
     )]
-    pub user_outcome_b_ata: InterfaceAccount<'info, TokenAccount>,
+    pub user_outcome_b_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         init_if_needed,
@@ -64,7 +64,7 @@ pub struct Split<'info> {
         associated_token::authority = user,
         associated_token::token_program = token_program
     )]
-    pub user_base_token_ata: InterfaceAccount<'info, TokenAccount>,
+    pub user_base_token_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
     pub system_program: Program<'info, System>,
     

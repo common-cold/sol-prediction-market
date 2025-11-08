@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token::{MintTo, Token, TransferChecked, mint_to, transfer_checked}, token_interface::{Mint, TokenAccount}};
 
-use crate::state::Market;
+use crate::{error::SolPredictionError, state::Market};
 
 #[derive(Accounts)]
 #[instruction(market_id: [u8; 12])]
@@ -15,7 +15,8 @@ pub struct Split<'info> {
 
     #[account(
         seeds = [b"market".as_ref(), market_id.as_ref()],
-        bump
+        bump,
+        constraint = !market_account.is_settled @ SolPredictionError::MarketAlreadySettled
     )]
     pub market_account: Account<'info, Market>,
 

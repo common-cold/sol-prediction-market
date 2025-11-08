@@ -1,11 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token::{Burn, MintTo, Token, TransferChecked, burn, mint_to, transfer_checked}, token_interface::{Mint, TokenAccount}};
 
-use crate::state::Market;
+use crate::{error::SolPredictionError, state::Market};
 
 #[derive(Accounts)]
 #[instruction(market_id: [u8; 12])]
-
 pub struct Merge<'info> {
 
     #[account(mut)]
@@ -16,7 +15,8 @@ pub struct Merge<'info> {
 
     #[account(
         seeds = [b"market".as_ref(), market_id.as_ref()],
-        bump
+        bump,
+        constraint = !market_account.is_settled @ SolPredictionError::MarketAlreadySettled
     )]
     pub market_account: Account<'info, Market>,
 
@@ -39,12 +39,6 @@ pub struct Merge<'info> {
 
     #[account(mut)]
     pub base_token_vault: Box<InterfaceAccount<'info, TokenAccount>>, 
-
-    #[account(mut)]
-    pub market_outcome_a_ata: Box<InterfaceAccount<'info, TokenAccount>>,
-
-    #[account(mut)]
-    pub market_outcome_b_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
     pub user_outcome_a_ata: Box<InterfaceAccount<'info, TokenAccount>>,
@@ -72,61 +66,18 @@ pub struct Merge<'info> {
 impl<'info> Merge<'info> {
     pub fn process(&mut self, market_id: [u8; 12], amount: u64, market_bump: u8) -> Result<()> {
 
-        //transfer outcome a token from user's ata to market's ata
-        msg!("Transfer outcome A");
-        
-        let outcome_a_transfer_ctx = CpiContext::new(
-            self.token_program.to_account_info(), 
-            TransferChecked {
-                from: self.user_outcome_a_ata.to_account_info(),
-                mint: self.outcome_a_mint.to_account_info(),
-                to: self.market_outcome_a_ata.to_account_info(),
-                authority: self.user.to_account_info()
-            }
-        );
-
-        transfer_checked(
-            outcome_a_transfer_ctx, 
-            amount, 
-            self.outcome_a_mint.decimals
-        )?;
-
-
-
-        //transfer outcome a token from user's ata to market's ata
-        msg!("Transfer outcome B");
-
-        let outcome_b_transfer_ctx = CpiContext::new(
-            self.token_program.to_account_info(), 
-            TransferChecked {
-                from: self.user_outcome_b_ata.to_account_info(),
-                mint: self.outcome_b_mint.to_account_info(),
-                to: self.market_outcome_b_ata.to_account_info(),
-                authority: self.user.to_account_info()
-            }
-        );
-
-         transfer_checked(
-            outcome_b_transfer_ctx, 
-            amount, 
-            self.outcome_b_mint.decimals
-        )?;
-
-
-        //burn them
         let seeds: &[&[&[u8]]] = &[&[b"market".as_ref(), market_id.as_ref(), &[market_bump]]];
         
-        //burn outcome a token from market ata
+        //burn outcome a token from user ata
         msg!("Burn outcome A");
 
-        let burn_outcome_a_ctx = CpiContext::new_with_signer(
+        let burn_outcome_a_ctx = CpiContext::new(
             self.token_program.to_account_info(), 
             Burn {
                 mint: self.outcome_a_mint.to_account_info(),
-                from: self.market_outcome_a_ata.to_account_info(),
-                authority: self.market_account.to_account_info()
-            }, 
-            seeds  
+                from: self.user_outcome_a_ata.to_account_info(),
+                authority: self.user.to_account_info()
+            }
         );
 
         burn(
@@ -134,17 +85,16 @@ impl<'info> Merge<'info> {
             amount
         )?;
 
-        //burn outcome a token from market ata
+        //burn outcome a token from user ata
         msg!("Burn outcome A");
         
-        let burn_outcome_b_ctx = CpiContext::new_with_signer(
+        let burn_outcome_b_ctx = CpiContext::new(
             self.token_program.to_account_info(), 
             Burn {
                 mint: self.outcome_b_mint.to_account_info(),
-                from: self.market_outcome_b_ata.to_account_info(),
-                authority: self.market_account.to_account_info()
-            }, 
-            seeds  
+                from: self.user_outcome_b_ata.to_account_info(),
+                authority: self.user.to_account_info()
+            }
         );
 
         burn(

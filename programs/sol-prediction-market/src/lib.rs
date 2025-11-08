@@ -4,7 +4,9 @@ declare_id!("DJ51Z4HfzNTxvTpKPpyM3JQK85yLc5FicCxxNJZr4Pkp");
 
 pub mod instructions;
 pub mod state;
+pub mod error;
 use crate::instructions::*;
+use crate::state::WinningOutcome;
 
 #[program]
 pub mod sol_prediction_market {
@@ -20,5 +22,13 @@ pub mod sol_prediction_market {
 
     pub fn merge<'info> (ctx: Context<'_, '_, '_, 'info, Merge<'info>>, market_id: [u8; 12], amount: u64) -> Result<()> {
         ctx.accounts.process(market_id, amount, ctx.bumps.market_account)
+    }
+
+    pub fn set_winning_side<'info> (ctx: Context<'_, '_, '_, 'info, SetWinningSide<'info>>, market_id: [u8; 12], winner: WinningOutcome) -> Result<()> {
+        ctx.accounts.process(market_id, ctx.bumps.market_account, winner)
+    }
+
+    pub fn claim_rewards<'info> (ctx: Context<'_, '_, '_, 'info, ClaimRewards<'info>>, market_id: [u8; 12]) -> Result<()> {
+        ctx.accounts.process(market_id, ctx.bumps.market_account)
     }
 }

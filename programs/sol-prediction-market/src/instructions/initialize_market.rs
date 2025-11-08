@@ -39,24 +39,6 @@ pub struct InitializeMarket<'info> {
     )]
     pub outcome_b_mint: Box<InterfaceAccount<'info, Mint>>,
 
-    #[account(
-        init,
-        payer = authority,
-        associated_token::mint = outcome_a_mint,
-        associated_token::authority = market_account,
-        associated_token::token_program = token_program
-    )]
-    pub market_outcome_a_ata: Box<InterfaceAccount<'info, TokenAccount>>,
-
-    #[account(
-        init,
-        payer = authority,
-        associated_token::mint = outcome_b_mint,
-        associated_token::authority = market_account,
-        associated_token::token_program = token_program
-    )]
-    pub market_outcome_b_ata: Box<InterfaceAccount<'info, TokenAccount>>,
-
     pub base_token_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
